@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tdd_app/core/utils/add_student_helper.dart';
 import 'package:tdd_app/core/utils/validators.dart';
 import 'package:tdd_app/data/models/student_model.dart';
+import 'package:tdd_app/data/repositories/student_repository.dart';
 import 'package:tdd_app/logic/bloc/student_bloc.dart';
 import 'package:tdd_app/presentation/widgets/custom_text_field.dart';
 
@@ -54,21 +56,7 @@ class StudentAddScreen extends StatelessWidget {
 
                 BlocConsumer<StudentBloc, StudentState>(
                   listener: (context, state) {
-                    if (state is AddingSuccess) {
-                      final inTest = const bool.fromEnvironment(
-                        'FLUTTER_TEST',
-                        defaultValue: false,
-                      );
-
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(state.message)));
-                      if (!inTest) Navigator.pop(context);
-                    } else if (state is AddingError) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(state.message)));
-                    }
+                    if (state is AddingSuccess) Navigator.pop(context);
                   },
                   builder: (context, state) {
                     if (state is StudentLoading) {
@@ -80,12 +68,11 @@ class StudentAddScreen extends StatelessWidget {
                         backgroundColor: const Color.fromARGB(255, 41, 183, 45),
                       ),
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          final student = StudentModel(
+                        if (validateForm(_formKey)) {
+                          final student = createStudent(
                             name: _nameCtrl.text,
                             batch: _batchCtrl.text,
                             week: _weekCtrl.text,
-                            id: generateUniqueId(),
                           );
 
                           context.read<StudentBloc>().add(AddStudent(student));

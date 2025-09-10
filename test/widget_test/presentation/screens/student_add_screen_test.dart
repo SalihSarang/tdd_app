@@ -34,27 +34,4 @@ void main() {
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
-  testWidgets('shows snackbar on AddingSuccess', (tester) async {
-    stubBloc(mockBloc, [
-      StudentInitial(),
-      AddingSuccess("Student added successfully"),
-    ]);
-
-    await tester.pumpWidget(makeStudentAddTestableWidget(mockBloc));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Student added successfully'), findsOneWidget);
-  });
-
-  testWidgets('shows snackbar on AddingError', (tester) async {
-    stubBloc(mockBloc, [
-      StudentInitial(),
-      AddingError("Failed to add student"),
-    ]);
-
-    await tester.pumpWidget(makeStudentAddTestableWidget(mockBloc));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Failed to add student'), findsOneWidget);
-  });
 }

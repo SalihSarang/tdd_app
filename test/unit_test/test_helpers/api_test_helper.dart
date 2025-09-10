@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
 import 'package:tdd_app/core/constants/api_endpoints.dart';
+import 'package:tdd_app/data/models/student_model.dart';
 import '../api_serviece_test/api_serviece_test.mocks.dart';
 
 const List<Map<String, String>> validStudentsJson = [
@@ -16,11 +17,16 @@ const Map<String, String> validStudentJson = {
   'batch': '225',
   'id': '1',
 };
+final invalidStudent = StudentModel(
+  id: '0',
+  week: '20',
+  batch: '225',
+  name: '',
+);
 const String invalidJson = '{Invalid_JSON}';
 const String testStudentId = '1';
 const int successStatus = 200;
 const int createdStatus = 201;
-const int noContentStatus = 204;
 const int notFoundStatus = 404;
 const String timeoutMessage = 'The Connection Has Timed Out';
 

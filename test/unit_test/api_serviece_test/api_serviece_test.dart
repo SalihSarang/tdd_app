@@ -20,6 +20,16 @@ void main() {
 
   group('StudentRepository API Tests', () {
     group('Fetch Students List', () {
+      test('Handles empty list of students with status 200', () async {
+        stubHttpGet(
+          mockClient,
+          statusCode: successStatus,
+          body: jsonEncode([]),
+        );
+        final result = await studentRepository.getStudentsList();
+        expect(result, isA<List<StudentModel>>());
+        expect(result.isEmpty, isTrue);
+      });
       test('Successfully fetches list of students with status 200', () async {
         stubHttpGet(mockClient, statusCode: successStatus);
         final result = await studentRepository.getStudentsList();
@@ -27,12 +37,14 @@ void main() {
         expect(result.length, equals(2));
         expect(result[0].name, equals('Salih'));
       });
-
       test('Throws exception when server returns 404', () async {
         stubHttpGet(mockClient, statusCode: notFoundStatus);
         expectThrows<Exception>(studentRepository.getStudentsList);
       });
-
+      test('Throws exception for unauthorized with status 401', () async {
+        stubHttpGet(mockClient, statusCode: 401);
+        expectThrows<Exception>(studentRepository.getStudentsList);
+      });
       test('Throws FormatException for invalid JSON response', () async {
         stubHttpGet(mockClient, statusCode: successStatus, isInvalidJson: true);
         expectThrows<FormatException>(studentRepository.getStudentsList);
@@ -41,6 +53,11 @@ void main() {
       test('Throws ClientException for network timeout', () async {
         stubNetworkError(mockClient, 'GET');
         expectThrows<http.ClientException>(studentRepository.getStudentsList);
+      });
+
+      test('Throws exception for server error with status 500', () async {
+        stubHttpGet(mockClient, statusCode: 500);
+        expectThrows<Exception>(studentRepository.getStudentsList);
       });
     });
 
@@ -79,6 +96,19 @@ void main() {
           throwsA(isA<http.ClientException>()),
         );
       });
+      test('Throws ArgumentError for invalid student ID', () async {
+        expect(
+          () => studentRepository.getStudentDetails('-1'),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('Throws exception for forbidden with status 403', () async {
+        stubHttpGet(mockClient, statusCode: 403);
+        expectThrows<Exception>(
+          () => studentRepository.getStudentDetails(testStudentId),
+        );
+      });
     });
 
     group('Add Student', () {
@@ -107,14 +137,37 @@ void main() {
           ),
         );
       });
+
+      test('Throws ArgumentError for invalid StudentModel', () async {
+        expect(
+          () => studentRepository.addStudent(invalidStudent),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+      test('Throws exception for bad request with status 400', () async {
+        stubHttpPost(mockClient, statusCode: 400);
+        expectThrows<Exception>(
+          () => studentRepository.addStudent(
+            StudentModel.fromJson(validStudentJson),
+          ),
+        );
+      });
+      test('Throws exception for conflict with status 409', () async {
+        stubHttpPost(mockClient, statusCode: 409);
+        expectThrows<Exception>(
+          () => studentRepository.addStudent(
+            StudentModel.fromJson(validStudentJson),
+          ),
+        );
+      });
     });
 
     group('Delete Student', () {
-      test('Successfully deletes student with status 204', () async {
+      test('Successfully deletes student with status 200', () async {
         stubHttpDelete(
           mockClient,
           studentId: testStudentId,
-          statusCode: noContentStatus,
+          statusCode: successStatus,
         );
         final result = await studentRepository.deleteStudent(testStudentId);
         expect(result, 'Delete Success');
